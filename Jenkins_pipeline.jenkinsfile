@@ -1,0 +1,51 @@
+pipeline {
+	agent any
+	
+    environment {
+        registryCredential = 'ecr:eu-west-1:awscredentials'
+        appRegistry = "320442627588.dkr.ecr.eu-west-1.amazonaws.com/jenkins_repo"
+        siteprojectRegistry = "https://320442627588.dkr.ecr.eu-west-1.amazonaws.com"
+    }
+
+	stages {
+	    stage('Fetch code') {
+            steps {
+				git branch: 'main', url: 'https://github.com/fanfanafankianki/Jenkins_KubeStarter.git'
+            }
+	    }
+	
+        stage('Deploy Kubernetes') {
+            steps {
+                script {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "awscredentials",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+
+
+                        def stackName = "myKubeStack-${env.BUILD_NUMBER}"
+                        def templateFile = "KubeStarter_Template.yaml"
+                        def region = "eu-west-1"
+                        sh "chmod 644 ${WORKSPACE}/KubeStarter_Template.yaml"
+                        sh "aws cloudformation create-stack --stack-name ${stackName} --template-body file://${WORKSPACE}/ECS_Template_db.yaml --region ${region}"
+        
+                        def stackStatus = sh(script: "aws cloudformation describe-stacks --stack-name ${stackName} --query Stacks[0].StackStatus --output text --region ${region}", returnStdout: true).trim()
+                        def maxAttempts = 8
+                        def attempts = 0
+                        while (stackStatus != 'CREATE_COMPLETE' && attempts < maxAttempts) {
+                            echo "Stack status: ${stackStatus}"
+                            sleep 30
+                            stackStatus = sh(script: "aws cloudformation describe-stacks --stack-name ${stackName} --query Stacks[0].StackStatus --output text --region ${region}", returnStdout: true).trim()
+                            attempts++
+                        }
+                        if (stackStatus == 'CREATE_COMPLETE') {
+                            echo "Stack created successfully."
+                        } else {
+                            echo "Stack creation timeout: 250 seconds reached. Current status: ${stackStatus}"
+                            error("Stack creation failed: timeout reached.")
+                        }
+                    }
+                }
+            }

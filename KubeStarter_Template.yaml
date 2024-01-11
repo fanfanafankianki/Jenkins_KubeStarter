@@ -1,0 +1,17 @@
+Resources:
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.medium
+      ImageId: ami-0cc4e06e6e710cd94
+      Tags:
+        - Key: "Name"
+          Value: "MyEc2Instance"
+      KeyName: "CloudStackKey"
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          DeleteOnTermination: true
+          SubnetId: "subnet-093275d0bdfd9752c"
+      AvailabilityZone: "eu-west-1a"
+
