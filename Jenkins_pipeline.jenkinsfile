@@ -1,16 +1,14 @@
 pipeline {
 	agent any
 	
-    environment {
-        registryCredential = 'ecr:eu-west-1:awscredentials'
-        appRegistry = "320442627588.dkr.ecr.eu-west-1.amazonaws.com/jenkins_repo"
-        siteprojectRegistry = "https://320442627588.dkr.ecr.eu-west-1.amazonaws.com"
-    }
-
 	stages {
 	    stage('Fetch code') {
+
             steps {
-				git branch: 'main', url: 'https://github.com/fanfanafankianki/Jenkins_KubeStarter.git'
+                sshagent(['SSH_private_key']) {
+				    git branch: 'main', url: 'git@github.com:fanfanafankianki/Jenkins_KubeStarter.git'
+                }
+
             }
 	    }
 	
@@ -25,11 +23,11 @@ pipeline {
                     ]]) {
 
 
-                        def stackName = "myKubeStack-${env.BUILD_NUMBER}"
+                        def stackName = "myKubeStack"
                         def templateFile = "KubeStarter_Template.yaml"
                         def region = "eu-west-1"
                         sh "chmod 644 ${WORKSPACE}/KubeStarter_Template.yaml"
-                        sh "aws cloudformation create-stack --stack-name ${stackName} --template-body file://${WORKSPACE}/ECS_Template_db.yaml --region ${region}"
+                        sh "aws cloudformation create-stack --stack-name ${stackName} --template-body file://${WORKSPACE}/${templateFile} --region ${region}"
         
                         def stackStatus = sh(script: "aws cloudformation describe-stacks --stack-name ${stackName} --query Stacks[0].StackStatus --output text --region ${region}", returnStdout: true).trim()
                         def maxAttempts = 8
@@ -49,3 +47,6 @@ pipeline {
                     }
                 }
             }
+		}
+	}
+}

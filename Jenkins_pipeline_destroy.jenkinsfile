@@ -1,0 +1,29 @@
+pipeline {
+	agent any
+	
+	stages {
+	
+        stage('Destroy Cloudformation with KubeMaster and KubeWorkers') {
+            steps {
+                script {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "awscredentials",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+
+                        def stackName = "myKubeStack"
+                        def region = "eu-west-1"
+                        // Usunięcie stosu CloudFormation
+                        sh "aws cloudformation delete-stack --stack-name ${stackName} --region ${region}"
+
+                         // Opcjonalnie: Czekanie na usunięcie stosu
+                        sh "aws cloudformation wait stack-delete-complete --stack-name ${stackName} --region ${region}"
+
+                    }
+                }
+            }
+		}
+	}
+}
