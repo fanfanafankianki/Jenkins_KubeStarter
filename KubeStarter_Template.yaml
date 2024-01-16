@@ -4,15 +4,25 @@ Parameters:
   KubeWorkerInstanceType:
     Description: EC2 KubeWorker instance type
     Type: String
-    Default: t2.small
+    Default: t2.medium
     AllowedValues:
       - t2.small
       - t2.medium
 
+  SSHKey:
+    Description: SSH Key for EC2 Instances
+    Type: String
+    #NoEcho: true
+
+  WorkerInstanceCount:
+    Type: Number
+    Description: Number of KubeWorkers EC2 instances to create
+    Default: 1
+
   VolumeSize:
     Description: Size of EBS
     Type: Number
-    Default: 10
+    Default: 20
 
 Resources:
   MyKubeMasterInstance:
@@ -26,7 +36,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:  
-            VolumeSize: 15   
+            VolumeSize: 10   
       KeyName: "Kube_master_Angular"
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
@@ -39,17 +49,21 @@ Resources:
           !Sub |
             #!/bin/bash
             sudo kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
+
+            sudo systemctl restart kubelet
+            sudo systemctl enable kubelet
+
             mkdir -p $HOME/.kube
             sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
             sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-            sudo systemctl restart kubelet
-            sudo systemctl enable kubelet
-            sudo kubeadm token create --print-join-command
-            kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+            sudo kubeadm token create --print-join-command > join.txt
             
+            kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+
   MyKubeWorkerInstance:
     Type: AWS::EC2::Instance
+    DependsOn: MyKubeMasterInstance
     Properties:
       InstanceType: !Ref KubeWorkerInstanceType
       ImageId: ami-08b91a65ed1075711
@@ -67,3 +81,17 @@ Resources:
           DeleteOnTermination: true
           SubnetId: "subnet-066a9b2dc7474e241"
       AvailabilityZone: "eu-west-1a"
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            echo "${SSHKey}" > Kube_master_Angular.pem
+            chmod 400 Kube_master_Angular.pem
+            FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
+            sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
+            scp ubuntu@${FIRST_INSTANCE_IP}:join.txt .
+
+Outputs:
+  FirstInstancePublicIP:
+    Value: !GetAtt MyKubeMasterInstance.PublicIp
+    Description: Public IP of the first instance
