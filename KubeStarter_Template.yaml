@@ -87,9 +87,9 @@ Resources:
             #!/bin/bash
             echo "${SSHKey}" > Kube_master_Angular.pem
             chmod 400 Kube_master_Angular.pem
-            FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
-            sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
-            scp ubuntu@${FIRST_INSTANCE_IP}:join.txt .
+          #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
+         #   sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
+         #   scp ubuntu@${FIRST_INSTANCE_IP}:join.txt .
 
 Outputs:
   FirstInstancePublicIP:
