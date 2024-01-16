@@ -56,10 +56,11 @@ Resources:
             mkdir -p $HOME/.kube
             sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
             sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-            sudo kubeadm token create --print-join-command > join.txt
             
             kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+            echo "Zapisujeee!!!!"
+            sudo kubeadm token create --print-join-command > /home/ubuntu/join.txt
+
 
   MyKubeWorkerInstance:
     Type: AWS::EC2::Instance
@@ -85,7 +86,8 @@ Resources:
         Fn::Base64: 
           !Sub |
             #!/bin/bash
-            echo "${SSHKey}" > Kube_master_Angular.pem
+            echo "Zapisuje!!!!"
+            echo "${SSHKey}" > /home/ubuntu/Kube_master_Angular.pem
             chmod 400 Kube_master_Angular.pem
           #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
          #   sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
