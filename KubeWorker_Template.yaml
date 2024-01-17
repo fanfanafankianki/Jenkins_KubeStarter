@@ -65,10 +65,11 @@ Resources:
             sudo chmod 777 /home/ubuntu/Kube_master_Angular.pem
             sudo -u ubuntu scp -o StrictHostKeyChecking=no -i /home/ubuntu/Kube_master_Angular.pem ubuntu@${MasterIP}:/home/ubuntu/join.txt /home/ubuntu/.
             sudo -u ubuntu mkdir /home/ubuntu/.kube
-            sudo -u ubuntu sudo scp -o StrictHostKeyChecking=no -i /home/ubuntu/Kube_master_Angular.pem ubuntu@${MasterIP}:/home/ubuntu/.kube/config /home/ubuntu/.kube/config
+            sudo -u ubuntu scp -o StrictHostKeyChecking=no -i /home/ubuntu/Kube_master_Angular.pem ubuntu@${MasterIP}:/home/ubuntu/.kube/config /home/ubuntu/.kube/config
             joinCommand=$(cat /home/ubuntu/join.txt)
             fullCommand="sudo -u ubuntu sudo $joinCommand --cri-socket unix:///var/run/cri-dockerd.sock"
             eval $fullCommand
+            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system
 
           #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
          #   sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
