@@ -26,19 +26,19 @@ Resources:
         Fn::Base64: 
           !Sub |
             #!/bin/bash
-            sudo kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
+            sudo -u ubuntu sudo kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
 
-            sudo systemctl restart kubelet
-            sudo systemctl enable kubelet
+            sudo -u ubuntu sudo systemctl restart kubelet
+            sudo -u ubuntu sudo systemctl enable kubelet
 
-            mkdir -p /home/ubuntu/.kube
-            sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
-            sudo chown ubuntu /home/ubuntu/.kube/config
-            sudo chmod 777 /home/ubuntu/.kube/config
+            sudo -u ubuntu mkdir -p /home/ubuntu/.kube
+            sudo -u ubuntu sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+            sudo -u ubuntu sudo chown ubuntu /home/ubuntu/.kube/config
+            sudo -u ubuntu sudo chmod 777 /home/ubuntu/.kube/config
 
-            kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+            sudo -u ubuntu kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
             echo "Zapisujeee!!!!"
-            sudo kubeadm token create --print-join-command > /home/ubuntu/join.txt
+            sudo -u ubuntu kubeadm token create --print-join-command > /home/ubuntu/join.txt
 
 
 
