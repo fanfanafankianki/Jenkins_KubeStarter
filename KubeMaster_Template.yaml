@@ -33,8 +33,9 @@ Resources:
 
             mkdir -p /home/ubuntu/.kube
             sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
-            sudo chown $(id -u):$(id -g) /home/ubuntu/.kube/config
-            
+            sudo chown ubuntu /home/ubuntu/.kube/config
+            sudo chmod 777 /home/ubuntu/.kube/config
+
             kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
             echo "Zapisujeee!!!!"
             sudo kubeadm token create --print-join-command > /home/ubuntu/join.txt

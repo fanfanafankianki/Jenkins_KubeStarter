@@ -65,10 +65,10 @@ Resources:
             sudo chmod 400 /home/ubuntu/Kube_master_Angular.pem
             scp -o StrictHostKeyChecking=no -i /home/ubuntu/Kube_master_Angular.pem ubuntu@${MasterIP}:/home/ubuntu/join.txt /home/ubuntu/.
             mkdir /home/ubuntu/.kube
-            scp -o StrictHostKeyChecking=no -i /home/ubuntu/Kube_master_Angular.pem ubuntu@${MasterIP}:/home/ubuntu/.kube/config /home/ubuntu/.kube/config
+            sudo scp -o StrictHostKeyChecking=no -i /home/ubuntu/Kube_master_Angular.pem ubuntu@${MasterIP}:/home/ubuntu/.kube/config /home/ubuntu/.kube/config
             joinCommand=$(cat /home/ubuntu/join.txt)
             fullCommand="sudo $joinCommand --cri-socket unix:///var/run/cri-dockerd.sock"
-            sudo eval $fullCommand
+            eval $fullCommand
 
           #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
          #   sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
