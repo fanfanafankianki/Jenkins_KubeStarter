@@ -1,6 +1,14 @@
 pipeline {
 	agent any
+    
+    environment {
+        PRIVATE_KEY = credentials('kube_ssh')
+    }	
 	
+    parameters {
+        choice(name: 'WORKERS_NUMBER', choices: ['1', '2', '3','4','5','6','7'], description: 'Choose how much workers you need')
+    }
+
 	stages {
 	    stage('Fetch code') {
 
@@ -12,7 +20,7 @@ pipeline {
             }
 	    }
 	
-        stage('Deploy Kubernetes') {
+        stage('Deploy Kubernetes Master') {
             steps {
                 script {
                     withCredentials([[
@@ -22,15 +30,14 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
 
-
-                        def stackName = "myKubeStack"
-                        def templateFile = "KubeStarter_Template.yaml"
+                        def stackName = "myKubeMaster"
+                        def templateFile = "KubeMaster_Template.yaml"
                         def region = "eu-west-1"
-                        sh "chmod 644 ${WORKSPACE}/KubeStarter_Template.yaml"
+                        sh "chmod 644 ${WORKSPACE}/KubeMaster_Template.yaml"
                         sh "aws cloudformation create-stack --stack-name ${stackName} --template-body file://${WORKSPACE}/${templateFile} --region ${region}"
         
                         def stackStatus = sh(script: "aws cloudformation describe-stacks --stack-name ${stackName} --query Stacks[0].StackStatus --output text --region ${region}", returnStdout: true).trim()
-                        def maxAttempts = 8
+                        def maxAttempts = 4
                         def attempts = 0
                         while (stackStatus != 'CREATE_COMPLETE' && attempts < maxAttempts) {
                             echo "Stack status: ${stackStatus}"
@@ -48,5 +55,68 @@ pipeline {
                 }
             }
 		}
+        stage('Deploy Kubernetes Worker') {
+            steps {
+                script {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "awscredentials",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        def baseStackName = "myKubeWorker"
+                        def count = params.WORKERS_NUMBER.toInteger()
+                        def publicIp = sh(script: """
+                        aws ec2 describe-instances \
+                            --filters "Name=tag:Name,Values=MyKubeMaster" \
+                            --query "Reservations[*].Instances[*].PublicIpAddress" \
+                            --output text
+                        """, returnStdout: true).trim()
+                        for(int i = 0; i < count; i++) {
+                            def stackName = "${baseStackName}${i}"
+                            def templateFile = "KubeWorker_Template.yaml"
+                            def region = "eu-west-1"
+                            sh "chmod 644 ${WORKSPACE}/KubeWorker_Template.yaml"
+                            def privateKey = readFile("${env.PRIVATE_KEY}").trim()
+                            def encodedKey = Base64.encoder.encodeToString(privateKey.bytes)
+ 
+                            sh """
+                            aws cloudformation create-stack --stack-name ${stackName} --template-body file://${WORKSPACE}/${templateFile} --region ${region} --parameters ParameterKey=WorkerInstanceCount,ParameterValue='${i}' ParameterKey=MasterIP,ParameterValue='${publicIp}' ParameterKey=SSHKey,ParameterValue='${encodedKey}'
+                            """
+                            
+                            def stackStatus = sh(script: "aws cloudformation describe-stacks --stack-name ${stackName} --query Stacks[0].StackStatus --output text --region ${region}", returnStdout: true).trim()
+                            def maxAttempts = 4
+                            def attempts = 0
+                            while (stackStatus != 'CREATE_COMPLETE' && attempts < maxAttempts) {
+                                echo "Stack status: ${stackStatus}"
+                                sleep 30
+                                stackStatus = sh(script: "aws cloudformation describe-stacks --stack-name ${stackName} --query Stacks[0].StackStatus --output text --region ${region}", returnStdout: true).trim()
+                                attempts++
+                            }
+                            if (stackStatus == 'CREATE_COMPLETE') {
+                                echo "Stack created successfully."
+                            } else {
+                                echo "Stack creation timeout: 250 seconds reached. Current status: ${stackStatus}"
+                                error("Stack creation failed: timeout reached.")
+                            }
+                        }
+                        // Tworzenie pliku artefaktu
+                        script {
+                            def fileContent1 = "${publicIp}"
+                            def fileContent2 = "${count}"
+                            writeFile file: 'Kube_PublicIP.txt', text: fileContent1
+                            writeFile file: 'Kube_WorkerCount.txt', text: fileContent2                            
+                        }
+                    }
+                }
+            }
+		}
 	}
+    post {
+        always {
+            // Archiwizacja pliku jako artefaktu
+            archiveArtifacts artifacts: 'Kube_PublicIP.txt', onlyIfSuccessful: true
+            archiveArtifacts artifacts: 'Kube_WorkerCount.txt', onlyIfSuccessful: true
+        }
+    }
 }
