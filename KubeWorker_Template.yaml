@@ -1,4 +1,4 @@
-  Description: 'AWS CloudFormation Template: Create KubeMaster EC2 with EBS storage'
+Description: 'AWS CloudFormation Template: Create KubeMaster EC2 with EBS storage'
   
 Parameters:
   KubeWorkerInstanceType:
