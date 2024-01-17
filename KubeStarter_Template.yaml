@@ -64,7 +64,6 @@ Resources:
 
   MyKubeWorkerInstance:
     Type: AWS::EC2::Instance
-    DependsOn: MyKubeMasterInstance
     Properties:
       InstanceType: !Ref KubeWorkerInstanceType
       ImageId: ami-08b91a65ed1075711
@@ -87,7 +86,7 @@ Resources:
           !Sub |
             #!/bin/bash
             echo "Zapisuje!!!!"
-            cat "${SSHKey}" > Kube_master_Angular.pem
+            echo "${SSHKey}" | base64 --decode > Kube_master_Angular.pem
             chmod 400 Kube_master_Angular.pem
           #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
          #   sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
