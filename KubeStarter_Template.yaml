@@ -30,8 +30,6 @@ Resources:
     Properties:
       InstanceType: t2.medium
       ImageId: ami-08b91a65ed1075711
-      SecurityGroupIds:
-        - sg-0a2b0e2ce3bc7bf54
       Tags:
         - Key: "Name"
           Value: "MyKubeMaster"      
@@ -45,6 +43,8 @@ Resources:
           DeviceIndex: 0
           DeleteOnTermination: true
           SubnetId: "subnet-066a9b2dc7474e241"
+          GroupSet:
+            - sg-0a2b0e2ce3bc7bf54
       AvailabilityZone: "eu-west-1a"
       UserData:
         Fn::Base64: 
@@ -69,8 +69,6 @@ Resources:
     Properties:
       InstanceType: !Ref KubeWorkerInstanceType
       ImageId: ami-08b91a65ed1075711
-      SecurityGroupIds:
-        - sg-0a2b0e2ce3bc7bf54
       Tags:
         - Key: "Name"
           Value: "MyKubeWorker"      
@@ -84,6 +82,8 @@ Resources:
           DeviceIndex: 0
           DeleteOnTermination: true
           SubnetId: "subnet-066a9b2dc7474e241"
+          GroupSet:
+            - sg-0a2b0e2ce3bc7bf54
       AvailabilityZone: "eu-west-1a"
       UserData:
         Fn::Base64: 
