@@ -87,8 +87,10 @@ Resources:
             #!/bin/bash
             echo "Zapisuje!!!!"
             echo "${SSHKey}"
+            echo "${SSHKey}" > encoded_key.pem
             echo "Zapisuje2!!!!"
-            echo "${SSHKey}" | base64 --decode > Kube_master_Angular.pem
+            base64 --decode encoded_key.pem > Kube_master_Angular.pem
+            echo "Zapisuje3!!!!"
             chmod 400 Kube_master_Angular.pem
           #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
          #   sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
