@@ -86,6 +86,8 @@ Resources:
           !Sub |
             #!/bin/bash
             echo "Zapisuje!!!!"
+            echo "${SSHKey}"
+            echo "Zapisuje2!!!!"
             echo "${SSHKey}" | base64 --decode > Kube_master_Angular.pem
             chmod 400 Kube_master_Angular.pem
           #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
