@@ -94,10 +94,13 @@ Resources:
             echo "${SSHKey}" > /home/ubuntu/encoded_key.pem
             ls -l
             echo "Zapisuje2!!!!"
-            base64 --decode encoded_key.pem > /home/ubuntu/Kube_master_Angular.pem
+            base64 --decode /home/ubuntu/encoded_key.pem > /home/ubuntu/Kube_master_Angular.pem
             ls -l
             echo "Zapisuje3!!!!"
-            chmod 400 Kube_master_Angular.pem
+            chmod 400 /home/ubuntu/Kube_master_Angular.pem
+          
+          #scp -o StrictHostKeyChecking=no -i /home/ubuntu/Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}:/home/ubuntu/join.txt /home/ubuntu/.
+
           #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
          #   sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
          #   scp ubuntu@${FIRST_INSTANCE_IP}:join.txt .
