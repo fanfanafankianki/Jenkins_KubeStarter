@@ -31,9 +31,9 @@ Resources:
             sudo systemctl restart kubelet
             sudo systemctl enable kubelet
 
-            mkdir -p $HOME/.kube
-            sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-            sudo chown $(id -u):$(id -g) $HOME/.kube/config
+            mkdir -p /home/ubuntu/.kube
+            sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+            sudo chown $(id -u):$(id -g) /home/ubuntu/.kube/config
             
             kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
             echo "Zapisujeee!!!!"
