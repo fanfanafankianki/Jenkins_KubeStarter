@@ -30,6 +30,8 @@ Resources:
     Properties:
       InstanceType: t2.medium
       ImageId: ami-08b91a65ed1075711
+      SecurityGroupIds:
+        - sg-0a2b0e2ce3bc7bf54
       Tags:
         - Key: "Name"
           Value: "MyKubeMaster"      
@@ -67,6 +69,8 @@ Resources:
     Properties:
       InstanceType: !Ref KubeWorkerInstanceType
       ImageId: ami-08b91a65ed1075711
+      SecurityGroupIds:
+        - sg-0a2b0e2ce3bc7bf54
       Tags:
         - Key: "Name"
           Value: "MyKubeWorker"      
@@ -87,9 +91,11 @@ Resources:
             #!/bin/bash
             echo "Zapisuje!!!!"
             echo "${SSHKey}"
-            echo "${SSHKey}" > encoded_key.pem
+            echo "${SSHKey}" > /home/ubuntu/encoded_key.pem
+            ls -l
             echo "Zapisuje2!!!!"
-            base64 --decode encoded_key.pem > Kube_master_Angular.pem
+            base64 --decode encoded_key.pem > /home/ubuntu/Kube_master_Angular.pem
+            ls -l
             echo "Zapisuje3!!!!"
             chmod 400 Kube_master_Angular.pem
           #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
