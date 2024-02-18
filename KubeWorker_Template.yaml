@@ -33,7 +33,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref KubeWorkerInstanceType
-      ImageId: ami-08b91a65ed1075711
+      ImageId: ami-0fc2aceda66f47df1
       Tags:
         - Key: "Name"
           Value: !Sub "MyKubeWorker${WorkerInstanceCount}"     
@@ -41,27 +41,23 @@ Resources:
         - DeviceName: "/dev/sda1"
           Ebs:
             VolumeSize: !Ref VolumeSize      
-      KeyName: "Kube_master_Angular"
+      KeyName: "MyKubeMaster"
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
           DeviceIndex: 0
           DeleteOnTermination: true
-          SubnetId: "subnet-066a9b2dc7474e241"
-          GroupSet:
-            - sg-0a2b0e2ce3bc7bf54
-      AvailabilityZone: "eu-west-1a"
+          SubnetId: !ImportValue MyPublicSubnet1Id
+          GroupSet: !ImportValue KubernetesSecurityGroup
+      AvailabilityZone: "eu-north-1a"
       UserData:
         Fn::Base64: 
           !Sub |
             #!/bin/bash
-            echo "Zapisuje!!!!"
             echo "${SSHKey}"
             echo "${SSHKey}" > /home/ubuntu/encoded_key.pem
             ls -l
-            echo "Zapisuje2!!!!"
             sudo -u ubuntu base64 --decode /home/ubuntu/encoded_key.pem > /home/ubuntu/Kube_master_Angular.pem
             ls -l
-            echo "Zapisuje3!!!!"
             sudo chmod 777 /home/ubuntu/Kube_master_Angular.pem
             sudo -u ubuntu scp -o StrictHostKeyChecking=no -i /home/ubuntu/Kube_master_Angular.pem ubuntu@${MasterIP}:/home/ubuntu/join.txt /home/ubuntu/.
             sudo -u ubuntu mkdir /home/ubuntu/.kube
