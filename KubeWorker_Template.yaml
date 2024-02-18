@@ -41,7 +41,7 @@ Resources:
         - DeviceName: "/dev/sda1"
           Ebs:
             VolumeSize: !Ref VolumeSize      
-      KeyName: "MyKubeMaster"
+      KeyName: "KuberMaster"
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
           DeviceIndex: 0
