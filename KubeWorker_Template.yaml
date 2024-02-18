@@ -47,7 +47,8 @@ Resources:
           DeviceIndex: 0
           DeleteOnTermination: true
           SubnetId: !ImportValue MyPublicSubnet1Id
-          GroupSet: !ImportValue KubernetesSecurityGroup
+          GroupSet: 
+            - !ImportValue KubernetesSecurityGroup
       AvailabilityZone: "eu-north-1a"
       UserData:
         Fn::Base64: 
