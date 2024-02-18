@@ -33,7 +33,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref KubeWorkerInstanceType
-      ImageId: ami-010c970cbbf22af42
+      ImageId: ami-0c71414824378efab
       Tags:
         - Key: "Name"
           Value: !Sub "MyKubeWorker${WorkerInstanceCount}"     
