@@ -113,6 +113,54 @@ Resources:
       SubnetId: !Ref MyPrivateSubnet2
       RouteTableId: !Ref MyPrivateRouteTable
 
+  KubernetesSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Kubernetes_Security_Group
+      GroupDescription: 'SecurityGroup for Kubernetes'
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: 'SSH access'
+        - IpProtocol: tcp
+          FromPort: 53
+          ToPort: 53
+          CidrIp: 0.0.0.0/0
+          Description: 'DNS access'
+        - IpProtocol: tcp
+          FromPort: 6443
+          ToPort: 6443
+          CidrIp: 0.0.0.0/0
+          Description: 'KupeAPI access'
+        - IpProtocol: tcp
+          FromPort: 2049
+          ToPort: 2049
+          CidrIp: 0.0.0.0/0
+          Description: 'NFS access'    
+        - IpProtocol: tcp
+          FromPort: 10250
+          ToPort: 10250
+          CidrIp: 0.0.0.0/0
+          Description: 'Kubelet access'
+        - IpProtocol: tcp
+          FromPort: 10256
+          ToPort: 10256
+          CidrIp: 0.0.0.0/0
+          Description: 'KubeProxy access'               
+        - IpProtocol: tcp
+          FromPort: 17900
+          ToPort: 17999
+          CidrIp: 0.0.0.0/0
+          Description: 'Calico access'  
+        - IpProtocol: tcp
+          FromPort: 30000
+          ToPort: 35000
+          CidrIp: 0.0.0.0/0
+          Description: 'Kubernetes Service access'  
+          
 Outputs:
   MyVPCId:
     Value: !Ref MyVPC
@@ -143,3 +191,9 @@ Outputs:
     Description: "The ID of the private subnet 2."
     Export:
       Name: MyPrivateSubnet2Id
+      
+  KubernetesSecurityGroup:
+    Value: !Ref KubernetesSecurityGroup
+    Description: "The ID of the Kubernetes SecurityGroup."
+    Export:
+      Name: KubernetesSecurityGroup
