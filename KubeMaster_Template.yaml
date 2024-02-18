@@ -5,7 +5,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t3.medium
-      ImageId: ami-0fc2aceda66f47df1
+      ImageId: ami-06c4a4c387643ac13
       Tags:
         - Key: "Name"
           Value: "MyKubeMaster"      
