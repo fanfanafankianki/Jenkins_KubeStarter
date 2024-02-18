@@ -4,10 +4,10 @@ Parameters:
   KubeWorkerInstanceType:
     Description: EC2 KubeWorker instance type
     Type: String
-    Default: t2.medium
+    Default: t3.medium
     AllowedValues:
-      - t2.small
-      - t2.medium
+      - t3.small
+      - t3.medium
 
   WorkerInstanceCount:
     Type: Number
