@@ -36,7 +36,7 @@ Resources:
             sudo -u ubuntu sudo chown ubuntu /home/ubuntu/.kube/config
             sudo -u ubuntu sudo chmod 777 /home/ubuntu/.kube/config
 
-            sudo -u ubuntu kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+            sudo -u ubuntu kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/calico.yaml
             sudo -u ubuntu kubeadm token create --print-join-command > /home/ubuntu/join.txt
 
 
