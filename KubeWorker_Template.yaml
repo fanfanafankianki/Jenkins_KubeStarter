@@ -28,12 +28,20 @@ Parameters:
     Type: Number
     Default: 20
 
-Resources:      
+Resources:
+  MyInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - KubernetesIngressRole
+     
   MyKubeWorkerInstance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref KubeWorkerInstanceType
       ImageId: ami-0c71414824378efab
+      IamInstanceProfile: 
+        Ref: MyInstanceProfile       
       Tags:
         - Key: "Name"
           Value: !Sub "MyKubeWorker${WorkerInstanceCount}"     

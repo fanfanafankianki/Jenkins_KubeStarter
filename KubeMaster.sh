@@ -56,12 +56,14 @@ helm version
 ######## Only for Master !!!
 #Start KubeMaster
 sudo kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
+
+sudo systemctl restart kubelet
+sudo systemctl enable kubelet
+
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-sudo systemctl restart kubelet
-sudo systemctl enable kubelet
 #sudo mkdir -p ~/.kube/ | sudo cp /etc/kubernetes/admin.conf ~/.kube/config | sudo chmod 755 ~/.kube/config
 sudo kubeadm token create --print-join-command
 
@@ -73,5 +75,5 @@ kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/we
 
 ### After worker attach! 
 #Reset CoreDNS
-
+kubeadm join 172.31.38.118:6443 --token 347z2f.52suablqibmu17kg --discovery-token-ca-cert-hash sha256:5d079ffe1bb1998cb4fca9a3c5b4a031c0e9816eb98847e0d9ab51a8b4f59891
 kubectl delete pod -n kube-system -l k8s-app=kube-dns
