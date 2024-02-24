@@ -47,6 +47,30 @@ Resources:
 
             sudo -u ubuntu kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/calico.yaml
             sudo -u ubuntu kubeadm token create --print-join-command > /home/ubuntu/join.txt
+            sudo -u ubuntu cd ~ | git clone https://github.com/fanfanafankianki/KubeServices
+            sudo -u ubuntu cd KubeServices/
+            sudo -u ubuntu git checkout HelmPromGraf
+            sudo -u ubuntu cd Kubernetes_Yamls/
+            sudo -u ubuntu kubectl apply -f .
+            sudo -u ubuntu kubectl apply -f NFS_configuration/.
+            sudo -u ubuntu curl -s https://fluxcd.io/install.sh | sudo bash
+            sudo -u ubuntu export GITHUB_TOKEN='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'
+            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system
+            sudo -u ubuntu sleep 10 && flux bootstrap github   --owner=fanfanafankianki   --repository=KubeServices   --branch=HelmPromGraf   --path=./Flux_configuration   --personal
+
+
+            sudo -u ubuntu helm repo add bitnami https://charts.bitnami.com/bitnami
+            sudo -u ubuntu helm repo add eks https://aws.github.io/eks-charts
+            sudo -u ubuntu helm repo update
+            sudo -u ubuntu helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+                --namespace kube-system \
+                --set clusterName=kubernetes \
+                --set serviceAccount.create=true \
+                --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::975050111074:role/KubernetesIngressRole
+
+            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system
+            sudo -u ubuntu helm repo add bitnami https://charts.bitnami.com/bitnami
+            sudo -u ubuntu helm repo update
 
 
 
