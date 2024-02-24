@@ -3,7 +3,7 @@ Description: 'AWS CloudFormation Template: Create KubeMaster EC2 with EBS storag
 
 Resources:
   MyInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
+    Type: AWS::IAM::InstanceProfileMaster
     Properties:
       Roles:
         - KubernetesIngressRole
@@ -14,7 +14,7 @@ Resources:
       InstanceType: t3.medium
       ImageId: ami-0c71414824378efab
       IamInstanceProfile: 
-        Ref: MyInstanceProfile      
+        Ref: MyInstanceProfileMaster      
       Tags:
         - Key: "Name"
           Value: "MyKubeMaster"      
