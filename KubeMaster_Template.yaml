@@ -14,7 +14,7 @@ Resources:
       InstanceType: t3.medium
       ImageId: ami-0c71414824378efab
       IamInstanceProfile: 
-        Ref: MyInstanceProfileMaster      
+        Ref: KubernetesIAMInstanceProfile
       Tags:
         - Key: "Name"
           Value: "MyKubeMaster"      
