@@ -61,7 +61,7 @@ Resources:
             sudo -u ubuntu kubectl apply -f /home/ubuntu/KubeServices/Kubernetes_Yamls/.
             sudo -u ubuntu kubectl apply -f /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/.
             sudo -u ubuntu curl -s https://fluxcd.io/install.sh | sudo bash
-            sudo -u ubuntu bash -c 'export GITHUB_TOKEN="ghp_VXWQgGPuHn04bQKCb" && kubectl rollout restart deployment/coredns -n kube-system && sleep 10 && flux bootstrap github --owner=fanfanafankianki --repository=KubeServices --branch=HelmPromGraf --path=./Flux_configuration --personal'
+            sudo -u ubuntu bash -c 'export GITHUB_TOKEN="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" && kubectl rollout restart deployment/coredns -n kube-system && sleep 10 && flux bootstrap github --owner=fanfanafankianki --repository=KubeServices --branch=HelmPromGraf --path=./Flux_configuration --personal'
             sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system && sleep 10
             sudo -u ubuntu helm repo add bitnami https://charts.bitnami.com/bitnami
             sudo -u ubuntu helm repo add eks https://aws.github.io/eks-charts
