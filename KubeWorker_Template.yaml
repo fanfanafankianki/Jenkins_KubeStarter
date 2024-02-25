@@ -83,6 +83,9 @@ Resources:
             else
                 echo "Polecenie patch zakończone błędem."
             fi
+            sudo -u ubuntu helm repo add bitnami https://charts.bitnami.com/bitnami
+            sudo -u ubuntu helm repo add eks https://aws.github.io/eks-charts
+            sudo -u ubuntu helm repo update
             sudo -u ubuntu helm install external-dns bitnami/external-dns \
               --namespace kube-system \
               --set provider=aws \
