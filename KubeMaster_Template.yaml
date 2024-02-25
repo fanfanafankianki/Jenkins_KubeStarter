@@ -2,8 +2,8 @@ Description: 'AWS CloudFormation Template: Create KubeMaster EC2 with EBS storag
 
 
 Resources:
-  MyInstanceProfile:
-    Type: AWS::IAM::InstanceProfileMaster
+  KubernetesIAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
         - KubernetesIngressRole
@@ -48,6 +48,17 @@ Resources:
             sudo -u ubuntu kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/calico.yaml
             sudo -u ubuntu kubeadm token create --print-join-command > /home/ubuntu/join.txt
             sudo -u ubuntu cd ~ | git clone https://github.com/fanfanafankianki/KubeServices
+            INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+            PRIVATE_IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+            REGION="eu-north-1"
+            PROVIDER_ID="aws:///${REGION}/${INSTANCE_ID}"
+            NODE_NAME="ip-$(echo $PRIVATE_IP | tr '.' '-')"
+            kubectl patch node $NODE_NAME -p "{\"spec\":{\"providerID\":\"$PROVIDER_ID\"}}"
+            if [ $? -eq 0 ]; then
+                echo "Polecenie patch zakończone sukcesem."
+            else
+                echo "Polecenie patch zakończone błędem."
+            fi
             sudo -u ubuntu cd KubeServices/
             sudo -u ubuntu git checkout HelmPromGraf
             sudo -u ubuntu cd Kubernetes_Yamls/
@@ -55,10 +66,10 @@ Resources:
             sudo -u ubuntu kubectl apply -f NFS_configuration/.
             sudo -u ubuntu curl -s https://fluxcd.io/install.sh | sudo bash
             sudo -u ubuntu export GITHUB_TOKEN='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'
-            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system
-            sudo -u ubuntu sleep 10 && flux bootstrap github   --owner=fanfanafankianki   --repository=KubeServices   --branch=HelmPromGraf   --path=./Flux_configuration   --personal
+            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system && sleep 10
+            sudo -u ubuntu flux bootstrap github   --owner=fanfanafankianki   --repository=KubeServices   --branch=HelmPromGraf   --path=./Flux_configuration   --personal
 
-
+            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system && sleep 10
             sudo -u ubuntu helm repo add bitnami https://charts.bitnami.com/bitnami
             sudo -u ubuntu helm repo add eks https://aws.github.io/eks-charts
             sudo -u ubuntu helm repo update
@@ -68,9 +79,23 @@ Resources:
                 --set serviceAccount.create=true \
                 --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::975050111074:role/KubernetesIngressRole
 
-            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system
+            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system && sleep 10
             sudo -u ubuntu helm repo add bitnami https://charts.bitnami.com/bitnami
             sudo -u ubuntu helm repo update
+            sudo -u ubuntu helm install external-dns bitnami/external-dns \
+              --namespace kube-system \
+              --set provider=aws \
+              --set aws.zoneType=public \
+              --set domainFilters[0]=powertrckr.com \
+              --set policy=sync \
+              --set registry=txt \
+              --set txtOwnerId=kubemaster \
+              --set interval=1m
 
-
+Outputs:
+  InstanceProfileOutput:
+    Description: "The ARN of the Instance Profile"
+    Value: !Ref KubernetesIAMInstanceProfile
+    Export:
+      Name: KubernetesIAMInstanceProfile
 

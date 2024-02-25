@@ -41,7 +41,7 @@ Resources:
       InstanceType: !Ref KubeWorkerInstanceType
       ImageId: ami-0c71414824378efab
       IamInstanceProfile: 
-        Ref: MyInstanceProfile       
+        Fn::ImportValue: KubernetesIAMInstanceProfile
       Tags:
         - Key: "Name"
           Value: !Sub "MyKubeWorker${WorkerInstanceCount}"     
@@ -74,8 +74,16 @@ Resources:
             joinCommand=$(cat /home/ubuntu/join.txt)
             fullCommand="sudo -u ubuntu sudo $joinCommand --cri-socket unix:///var/run/cri-dockerd.sock"
             eval $fullCommand
-            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system
+            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system && sleep 10
+            INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+            PRIVATE_IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+            REGION="eu-north-1"
+            PROVIDER_ID="aws:///${REGION}/${INSTANCE_ID}"
+            NODE_NAME="ip-$(echo $PRIVATE_IP | tr '.' '-')"
+            kubectl patch node $NODE_NAME -p "{\"spec\":{\"providerID\":\"$PROVIDER_ID\"}}"
+            if [ $? -eq 0 ]; then
+                echo "Polecenie patch zakończone sukcesem."
+            else
+                echo "Polecenie patch zakończone błędem."
+            fi
 
-          #  FIRST_INSTANCE_IP="${FirstInstancePublicIP}"
-         #   sudo ssh -o StrictHostKeyChecking=no -i Kube_master_Angular.pem ubuntu@${FIRST_INSTANCE_IP}
-         #   scp ubuntu@${FIRST_INSTANCE_IP}:join.txt .
