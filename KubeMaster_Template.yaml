@@ -32,7 +32,8 @@ Resources:
             - !ImportValue KubernetesSecurityGroup
       AvailabilityZone: "eu-north-1a"
       UserData:
-        Fn::Base64: 
+        Fn::Base64:
+          !Sub |
             #!/bin/bash
             sudo -u ubuntu sudo kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
 
