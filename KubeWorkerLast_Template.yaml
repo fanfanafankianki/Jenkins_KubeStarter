@@ -84,3 +84,4 @@ Resources:
               --set registry=txt \
               --set txtOwnerId=kubemaster \
               --set interval=1m
+            sudo -u ubuntu kubectl rollout restart deployment/coredns -n kube-system
