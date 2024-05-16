@@ -1,5 +1,5 @@
 Description: 'AWS CloudFormation Template: Create KubeWorker EC2 with EBS storage'
-  
+
 Parameters:
   KubeWorkerInstanceType:
     Description: EC2 KubeWorker instance type
@@ -22,7 +22,7 @@ Parameters:
     Description: SSH Key for EC2 Instances
     Type: String
     #NoEcho: true
-  
+
   VolumeSize:
     Description: Size of EBS
     Type: Number
@@ -34,22 +34,22 @@ Resources:
     Properties:
       InstanceType: !Ref KubeWorkerInstanceType
       ImageId: ami-0c71414824378efab
-      IamInstanceProfile: 
+      IamInstanceProfile:
         Fn::ImportValue: KubernetesIAMInstanceProfile
       Tags:
         - Key: "Name"
-          Value: !Sub "MyKubeWorker${WorkerInstanceCount}"     
+          Value: !Sub "MyKubeWorker${WorkerInstanceCount}"
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:
-            VolumeSize: !Ref VolumeSize      
+            VolumeSize: !Ref VolumeSize
       KeyName: "KuberMaster"
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
           DeviceIndex: 0
           DeleteOnTermination: true
           SubnetId: !ImportValue MyPublicSubnet1Id
-          GroupSet: 
+          GroupSet:
             - !ImportValue KubernetesSecurityGroup
       AvailabilityZone: "eu-north-1a"
       UserData:
@@ -79,7 +79,7 @@ Resources:
               --namespace kube-system \
               --set provider=aws \
               --set aws.zoneType=public \
-              --set domainFilters[0]=powertrckr.com \
+              --set domainFilters[0]=trainingnotes.fit \
               --set policy=sync \
               --set registry=txt \
               --set txtOwnerId=kubemaster \
