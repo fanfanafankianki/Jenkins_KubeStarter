@@ -1,9 +1,3 @@
-variable "tfe_token" {
-  description = "Terraform Cloud API token"
-  type        = string
-  sensitive   = true
-}
-
 variable "ec2_count" {
   description = "EC2 COUNT"
   type        = number
