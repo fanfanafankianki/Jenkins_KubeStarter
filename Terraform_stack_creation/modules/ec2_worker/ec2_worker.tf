@@ -1,5 +1,3 @@
-
-
 locals {
   common_tags = {
     Name = "Worker"
@@ -14,7 +12,7 @@ locals {
 data "aws_security_group" "existing_sg" {
   filter {
     name   = "group-name"
-    values= ["ssh"]
+    values = ["Kubernetes_Security_Group"]
   }
 }
 
