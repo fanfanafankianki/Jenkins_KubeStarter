@@ -55,7 +55,7 @@ resource "aws_instance" "instance" {
   }
   provisioner "local-exec" {
     command = <<EOT
-      cd ANSIBLE/worker
+      cd ../Ansible_provisioning/worker
       echo '[web_servers]' > hosts
       echo 'EC2_WORKER ansible_host=IP ansible_user=ubuntu' >> hosts 
       sed -i 's/IP/${self.public_ip}/g' hosts

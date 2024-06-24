@@ -1,5 +1,3 @@
-
-
 locals {
   common_tags = {
     Name = "Master"
