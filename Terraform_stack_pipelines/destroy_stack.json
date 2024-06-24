@@ -1,0 +1,31 @@
+pipeline {
+agent any
+    stages {
+        stage('Fetch code') {
+            steps {
+                sshagent(['SSH_private_key']) {
+                    git branch: 'main', url: 'git@github.com:fanfanafankianki/Jenkins_KubeStarter.git'
+                }
+            }
+        }
+        stage('Delete master and worker nodes') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awscredentials']]) {
+                    script {
+                        sh '''
+                        cd Terraform_stack_creation
+                        terraform init
+                       #terraform destroy -target=module.ec2_worker -auto-approve
+                        terraform destroy -target=module.ec2_worker -auto-approve
+                        terraform destroy -target=module.vpc -auto-approve
+
+                        #REMOVE DEPENDENCIES CREATED IN JOB THAT CREATES WHOLE STACK
+                        rm /tmp/token
+                        rm /tmp/config
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}

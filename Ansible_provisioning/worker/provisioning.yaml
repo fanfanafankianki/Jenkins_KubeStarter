@@ -1,0 +1,187 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      register: update_cache
+
+    - name: zip install
+      apt:
+        name:
+          - unzip
+        state: present
+        update_cache: yes
+
+    - name: Install ca-certificates curl gnupg 
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: yes
+
+    - name: Ensure /etc/apt/keyrings directory exists
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+    - name: Download Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
+
+    - name: Convert Docker GPG key to dearmored format
+      command: gpg --dearmor -o /etc/apt/keyrings/docker.gpg /etc/apt/keyrings/docker.gpg
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+    
+    - name: Set permissions on the dearmored Docker GPG key
+      file:
+        path: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
+      
+    - name: Add repo to Apt sources
+      command: echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    - name: Add Docker GPG key and add Docker repository
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
+
+    - name: Add Docker GPG key and convert to dearmored format
+      shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/docker-archive-keyring.gpg
+
+    - name: Add Docker GPG key, convert to dearmored format, and add Docker repository
+      shell: >
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" |
+        tee /etc/apt/sources.list.d/docker.list > /dev/null
+      args:
+        creates: /etc/apt/sources.list.d/docker.list
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      register: update_cache
+ 
+    - name: Install docker dependencies
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - apt-transport-https
+          - software-properties-common
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Download cri-dockerd
+      get_url:
+        url: https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.9/cri-dockerd_0.3.9.3-0.ubuntu-bionic_amd64.deb
+        dest: /tmp/cri-dockerd_0.3.9.3-0.ubuntu-bionic_amd64.deb
+
+    - name: Install CRI
+      command: dpkg -i /tmp/cri-dockerd_0.3.9.3-0.ubuntu-bionic_amd64.deb
+
+    - name: Start cri-docker
+      service:
+        name: cri-docker
+        state: started
+        enabled: yes
+
+    - name: Start docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+
+    - name: Add Kubernetes GPG key and repository
+      shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg 
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes GPG key and repository2
+      shell: >
+        echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' |
+        tee /etc/apt/sources.list.d/kubernetes.list
+      args:
+        creates: /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      register: update_cache
+
+    - name: Install kubernetes
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        update_cache: yes
+
+    - name: Hold kubelet, kubeadm, kubectl packages
+      shell: apt-mark hold kubelet kubeadm kubectl
+
+    - name: Install NFS
+      apt:
+        name:
+          - nfs-common
+        state: present
+
+    - name: Delete dockerd
+      shell: sudo rm /var/run/containerd/containerd.sock
+
+    - name: Create file
+      shell: mkdir -p /home/ubuntu/.kube/
+
+    - name: Copy .kube/config
+      copy:
+        src: /tmp/config
+        dest: /home/ubuntu/.kube/config
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Copy token
+      copy:
+        src: /tmp/token
+        dest: /home/ubuntu/token
+
+    - name: Connect NODES
+      shell: sudo $(cat /home/ubuntu/token | head -n1)
+
+    - name: Download HELM
+      get_url:
+        url: https://get.helm.sh/helm-v3.14.0-rc.1-linux-amd64.tar.gz
+        dest: /tmp/helm-v3.14.0-rc.1-linux-amd64.tar.gz
+        mode: '0644'
+
+    - name: Extract HELM
+      command: tar -xzvf /tmp/helm-v3.14.0-rc.1-linux-amd64.tar.gz -C /tmp/
+
+    - name: Move HELM binary to /usr/local/bin
+      command: mv /tmp/linux-amd64/helm /usr/local/bin/helm
+      args:
+        creates: /usr/local/bin/helm
+    
+    - name: Ensure /usr/local/bin/helm is executable
+      file:
+        path: /usr/local/bin/helm
+        mode: '0755'
+        owner: root
+        group: root
+ 
+ 
+   

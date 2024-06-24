@@ -1,0 +1,2 @@
+[web_servers]
+EC2_MASTER ansible_host=IP ansible_user=ubuntu
