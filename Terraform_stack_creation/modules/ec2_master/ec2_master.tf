@@ -131,7 +131,7 @@ resource "aws_instance" "instance" {
   }
   provisioner "local-exec" {
     command = <<EOT
-      cd ANSIBLE/master
+      cd ../Ansible_provisioning/master
       echo '[web_servers]' > hosts
       echo 'EC2_MASTER ansible_host=IP ansible_user=ubuntu' >> hosts
       cat hosts   
