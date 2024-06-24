@@ -1,3 +1,13 @@
+provider "tfe" {
+  hostname = "app.terraform.io"
+  token    = var.tfe_token
+}
+
+variable "tfe_token" {
+  type      = string
+  sensitive = true
+}
+
 module "vpc" {
  source = "./modules/vpc/"
 }
