@@ -1,4 +1,4 @@
-# Jenkins CI/CD Jobs - Pipelines for Continuous Integration and Delivery for DevOps-Driven Project
+# Jenkins Project Setup - Pipelines for setup for DevOps-Driven Project
 <a name="readme-top"></a>
 <!-- ABOUT THE PROJECT -->
 ## About The Project
