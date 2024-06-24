@@ -19,10 +19,6 @@ module "ec2_worker" {
  vpc_id            = module.vpc.vpc_id             #GET VPC OUTPUT AND BASE ON IT
 }
 
-module "s3" {
- source = "./modules/s3/"
-}
-
 #data "aws_availability_zones" "available" {
 #  state = "available"
 #}
