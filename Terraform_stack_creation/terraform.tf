@@ -14,6 +14,11 @@ terraform {
   }
 }
 
+provider "tfe" {
+  hostname = "app.terraform.io"
+  token    = var.tfe_token
+}
+
 # Configure the AWS Provider
 provider "aws" {
   region = "eu-north-1"
