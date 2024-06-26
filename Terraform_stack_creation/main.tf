@@ -2,23 +2,6 @@ module "vpc" {
  source = "./modules/vpc/"
 }
 
-module "ec2_master" {
- source = "./modules/ec2_master/"
- ec2_count         = var.ec2_count                 #PASS INSTANCE COUNT >>> terraform apply -var="ec2_count=2"
- ec2_instance_type = var.ec2_instance_type         #PASS INSTANCE TYPE  >>> terraform apply -var="ec2_instance_type=t2.small"
- public_subnet_ids = module.vpc.public_subnet_ids  #GET VPC OUTPUT AND BASE ON IT
- vpc_id            = module.vpc.vpc_id             #GET VPC OUTPUT AND BASE ON IT
-}
-
-module "ec2_worker" {
- source = "./modules/ec2_worker/"
- sg_id             = module.ec2_master.sg_id
- ec2_count         = var.ec2_count                 #PASS INSTANCE COUNT >>> terraform apply -var="ec2_count=2"
- ec2_instance_type = var.ec2_instance_type         #PASS INSTANCE TYPE  >>> terraform apply -var="ec2_instance_type=t2.small"
- public_subnet_ids = module.vpc.public_subnet_ids  #GET VPC OUTPUT AND BASE ON IT
- vpc_id            = module.vpc.vpc_id             #GET VPC OUTPUT AND BASE ON IT
-}
-
 locals {
   common_tags_master = {
     Name = "Master"
@@ -87,7 +70,7 @@ resource "tls_private_key" "worker" {
 
 resource "aws_key_pair" "worker" {
   key_name   = "worker-key"
-  public_key = tls_private_key.example.public_key_openssh
+  public_key = tls_private_key.worker.public_key_openssh
 }
 
 resource "aws_instance" "master_instance" {
@@ -97,7 +80,7 @@ resource "aws_instance" "master_instance" {
   tags                   = local.common_tags_master
   subnet_id              = module.vpc.public_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.web_sg.id, aws_security_group.kubernetes_sg.id]
-  key_name               = aws_key_pair.master.key_name_master
+  key_name               = aws_key_pair.master.key_name
   associate_public_ip_address = true
   
   provisioner "remote-exec" {
@@ -120,7 +103,7 @@ resource "aws_instance" "worker_instance" {
   tags                   = local.common_tags_worker
   subnet_id              = module.vpc.public_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.web_sg.id, aws_security_group.kubernetes_sg.id]
-  key_name               = aws_key_pair.worker.key_name_worker
+  key_name               = aws_key_pair.worker.key_name
   associate_public_ip_address = true
   
   provisioner "remote-exec" {
