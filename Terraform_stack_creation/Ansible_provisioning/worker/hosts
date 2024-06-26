@@ -1,2 +1,1 @@
 [web_servers]
-EC2_WORKER ansible_host=IP ansible_user=ubuntu
