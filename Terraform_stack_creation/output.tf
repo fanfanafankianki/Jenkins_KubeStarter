@@ -1,12 +1,7 @@
 
 output "vpc_id" {
-  description = "something"
+  description = "VPC ID"
   value = module.vpc.vpc_id
-}
-
-output "example_output" {
-  description = "A static example output"
-  value       = module.vpc.example_output
 }
 
 output "public_subnet_ids" {
@@ -21,16 +16,5 @@ output "private_subnet_ids" {
 
 output "sg_id" {
   description = "Security Group ID"
-  value       = module.ec2_master.sg_id
+  value = aws_security_group.web_sg.id
 }
-
-# output "data" {
-#   description = "data"
-#   value       = module.s3.s3_object_body
-# }
-
-
-# output "buckets" {
-#   description = "data"
-#   value       = module.s3.out
-# }

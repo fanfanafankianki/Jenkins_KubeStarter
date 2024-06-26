@@ -1,11 +1,51 @@
-variable "ec2_count" {
-  description = "EC2 COUNT"
+variable "ec2_count_master" {
+  description = "EC2 MASTER INSTANCE COUNT"
   type        = number
-  default     = 2
+  default     = 1
 }
 
-variable "ec2_instance_type" {
-  description = "EC2 INSTANCE TYPE"
+variable "ec2_instance_type_master" {
+  description = "EC2 MASTER INSTANCE TYPE"
   type        = string
   default     = "t3.medium"
+}
+
+variable "ec2_count_worker" {
+  description = "EC2 WORKER INSTANCE COUNT"
+  type        = number
+  default     = 1
+}
+
+variable "ec2_instance_type_worker" {
+  description = "EC2 WORKER INSTANCE TYPE"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "ami_us_east_2_master" {
+    description = "Master ami version"
+    type        = string
+    default     = "ami-0705384c0b33c194c"
+}
+
+variable "ami_us_east_2_worker" {
+    description = "Worker ami version"
+    type        = string
+    default     = "ami-0705384c0b33c194c"
+}
+
+variable "security_group" {
+    description = "Configuration for security group"
+    type  = object({
+        sg_name     = string
+        ssh_port    = number
+        protocol    = string
+        cidr_blocks = list(string)
+    })
+    default = {
+        sg_name     = "ssh"
+        ssh_port    = 22
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
 }
