@@ -1,5 +1,8 @@
 pipeline {
 agent any
+    environment {
+        TERRAFORM_CLOUD_TOKEN = credentials('TERRAFORM_CLOUD_TOKEN')
+    }
     stages {
         stage('Fetch code') {
             steps {
@@ -9,20 +12,18 @@ agent any
             }
         }
         stage('Delete master and worker nodes') {
-            steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awscredentials']]) {
+           steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awscredentials'],
+                    string(credentialsId: 'TERRAFORM_CLOUD_TOKEN', variable: 'TERRAFORM_CLOUD_TOKEN')
+                ]) {
                     script {
-                        sh '''
+                        sh """
                         cd Terraform_stack_creation
+                        echo 'credentials "app.terraform.io" { token = "${TERRAFORM_CLOUD_TOKEN}" }' > ~/.terraformrc
                         terraform init
-                       #terraform destroy -target=module.ec2_worker -auto-approve
-                        terraform destroy -target=module.ec2_worker -auto-approve
-                        terraform destroy -target=module.vpc -auto-approve
-
-                        #REMOVE DEPENDENCIES CREATED IN JOB THAT CREATES WHOLE STACK
-                        rm /tmp/token
-                        rm /tmp/config
-                        '''
+                        terraform destroy -auto-approve
+                        """
                     }
                 }
             }
