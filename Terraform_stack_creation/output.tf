@@ -19,12 +19,12 @@ output "sg_id" {
   value = aws_security_group.web_sg.id
 }
 
-output "private_key_pem_master" {
+output "master_private_key_pem" {
   value     = tls_private_key.master.private_key_pem
   sensitive = true
 }
 
-output "private_key_pem_worker" {
+output "worker_private_key_pem" {
   value     = tls_private_key.worker.private_key_pem
   sensitive = true
 }
