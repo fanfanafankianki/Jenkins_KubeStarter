@@ -100,12 +100,6 @@ resource "aws_key_pair" "master" {
   public_key = tls_private_key.master.public_key_openssh
 }
 
-resource "local_file" "private_key" {
-  content  = tls_private_key.master.private_key_pem
-  filename = "/tmp/master-key.pem"
-  file_permission = "0400"
-}
-
 resource "aws_instance" "instance" {
   #count                  = var.ec2_count
   ami                    = var.ami_us_east_2
