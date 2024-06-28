@@ -1,6 +1,16 @@
-- hosts: all
+- name: General provisioning for all hosts
+  hosts: all
   become: yes
   tasks:
+
+    - name: Copy .bashrc template to remote machine
+      template:
+        src: template_bashrc
+        dest: /home/ubuntu/.bashrc
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
     - name: Update apt cache
       apt:
         update_cache: yes
@@ -13,7 +23,7 @@
         state: present
         update_cache: yes
 
-    - name: Install ca-certificates curl gnupg 
+    - name: Install ca-certificates curl gnupg
       apt:
         name:
           - ca-certificates
@@ -38,12 +48,12 @@
       command: gpg --dearmor -o /etc/apt/keyrings/docker.gpg /etc/apt/keyrings/docker.gpg
       args:
         creates: /etc/apt/keyrings/docker.gpg
-    
+
     - name: Set permissions on the dearmored Docker GPG key
       file:
         path: /etc/apt/keyrings/docker.gpg
         mode: '0644'
-      
+
     - name: Add repo to Apt sources
       command: echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
@@ -69,7 +79,7 @@
       apt:
         update_cache: yes
       register: update_cache
- 
+
     - name: Install docker dependencies
       apt:
         name:
@@ -107,7 +117,6 @@
         state: started
         enabled: yes
 
-
     - name: Add Kubernetes GPG key and repository
       shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg 
       args:
@@ -143,6 +152,10 @@
           - nfs-common
         state: present
 
+- name: Install Kubemaster
+  hosts: master
+  become: yes
+  tasks:
     - name: Initialize Kubernetes control plane with dockerd
       shell: sudo kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
 
@@ -159,15 +172,6 @@
 
     - name: Ensure ownership of .kube/config
       shell: chown ubuntu:ubuntu /home/ubuntu/.kube/config
-    
-    - name: Download weave-daemonset
-      get_url:
-        url: https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
-        dest: /tmp/weave-daemonset-k8s.yaml
-        mode: '0644'
-
-    - name: Apply wave
-      command: kubectl apply -f /tmp/weave-daemonset-k8s.yaml --kubeconfig=/home/ubuntu/.kube/config
 
     - name: Restart kubelet service
       service:
@@ -193,12 +197,50 @@
       copy:
         content: "{{ join_command.stdout }}"
         dest: /tmp/token
-    
+
     - name: Download token
       fetch:
         src: /tmp/token
         dest: /tmp/token
         flat: yes
+
+    - name: Apply Calico YAML
+      ansible.builtin.command:
+        cmd: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/calico.yaml
+      become: yes
+      become_user: ubuntu
+
+- name: Install Kubeworkers
+  hosts: worker
+  become: yes
+  become_user: ubuntu
+  tasks:
+    - name: Delete dockerd
+      shell: sudo rm /var/run/containerd/containerd.sock
+
+    - name: Create file
+      shell: mkdir -p /home/ubuntu/.kube/
+
+    - name: Copy .kube/config
+      copy:
+        src: /tmp/config
+        dest: /home/ubuntu/.kube/config
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Copy token
+      copy:
+        src: /tmp/token
+        dest: /home/ubuntu/token
+
+    - name: Connect NODES
+      shell: sudo $(cat /home/ubuntu/token | head -n1)
+
+- name: Install deployments
+  hosts: all
+  become: yes
+  tasks:
 
     - name: Download HELM
       get_url:
@@ -213,15 +255,133 @@
       command: mv /tmp/linux-amd64/helm /usr/local/bin/helm
       args:
         creates: /usr/local/bin/helm
-    
+
     - name: Ensure /usr/local/bin/helm is executable
       file:
         path: /usr/local/bin/helm
         mode: '0755'
         owner: root
         group: root
-    
 
+    - name: Restart CoreDNS deployment and wait
+      ansible.builtin.shell: |
+        kubectl rollout restart deployment/coredns -n kube-system
+        sleep 10
 
- 
-   
+- name: Patch Kubernetes node
+  hosts: all
+  become: yes
+  become_user: ubuntu
+  tasks:
+    - name: Get IMDSv2 token
+      shell: |
+        curl -X PUT "http://169.254.169.254/latest/api/token" \
+        -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"
+      register: imds_token
+
+    - name: Set token fact
+      set_fact:
+        token: "{{ imds_token.stdout }}"
+
+    - name: Get AWS region
+      shell: |
+        curl -H "X-aws-ec2-metadata-token: {{ token }}" \
+        http://169.254.169.254/latest/meta-data/placement/region
+      register: aws_region
+
+    - name: Set region fact
+      set_fact:
+        region: "{{ aws_region.stdout }}"
+
+    - name: Get AWS instance ID
+      shell: |
+        curl -H "X-aws-ec2-metadata-token: {{ token }}" \
+        http://169.254.169.254/latest/meta-data/instance-id
+      register: aws_instance_id
+
+    - name: Set instance ID fact
+      set_fact:
+        instance_id: "{{ aws_instance_id.stdout }}"
+
+    - name: Get local IP and format it
+      shell: |
+        curl http://169.254.169.254/latest/meta-data/local-ipv4 | tr '.' '-'
+      register: local_ip_formatted
+
+    - name: Set local IP formatted fact
+      set_fact:
+        local_ip_formatted: "{{ local_ip_formatted.stdout }}"
+
+- name: Download Git Repo
+  hosts: all
+  become: yes
+  become_user: ubuntu
+  tasks:
+
+    - name: Clone the KubeServices repository
+      ansible.builtin.git:
+        repo: https://github.com/fanfanafankianki/KubeServices
+        dest: /home/ubuntu/KubeServices
+        version: main
+
+    - name: Checkout HelmPromGraf branch
+      ansible.builtin.command:
+        cmd: git checkout HelmPromGraf
+        chdir: /home/ubuntu/KubeServices
+
+- name: Perform Kubernetes and Flux setup
+  hosts: master
+  become: yes
+  become_user: ubuntu
+  tasks:
+
+    - name: Apply Configuration Yamls
+      ansible.builtin.command:
+        cmd: kubectl apply -f /home/ubuntu/KubeServices/Kubernetes_Yamls/.
+        chdir: /home/ubuntu/KubeServices/Kubernetes_Yamls
+
+    - name: Apply NFS Configuration Yamls
+      ansible.builtin.command:
+        cmd: kubectl apply -f /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/.
+        chdir: /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration
+
+    - name: Install Flux
+      ansible.builtin.shell: |
+        curl -s https://fluxcd.io/install.sh | sudo bash
+      args:
+        chdir: /home/ubuntu/KubeServices/Flux_configuration
+
+    - name: Export GitHub token and bootstrap Flux
+      ansible.builtin.shell: |
+        export GITHUB_TOKEN="secret"
+        kubectl rollout restart deployment/coredns -n kube-system
+        sleep 10
+        flux bootstrap github --owner=fanfanafankianki --repository=KubeServices --branch=HelmPromGraf --path=./Flux_configuration --personal
+      environment:
+        GITHUB_TOKEN: "secret"
+
+    - name: Restart CoreDNS deployment and wait
+      ansible.builtin.shell: |
+        kubectl rollout restart deployment/coredns -n kube-system
+        sleep 10
+
+    - name: Add Bitnami Helm repository
+      ansible.builtin.command:
+        cmd: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+    - name: Add EKS Helm repository
+      ansible.builtin.command:
+        cmd: helm repo add eks https://aws.github.io/eks-charts
+
+    - name: Update Helm repositories
+      ansible.builtin.command:
+        cmd: helm repo update
+
+    - name: Install or upgrade AWS Load Balancer Controller
+      ansible.builtin.command:
+        cmd: >
+          helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller
+          --namespace kube-system
+          --set clusterName=kubernetes
+          --set serviceAccount.create=true
+          --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::975050111074:role/KubernetesIngressRole
