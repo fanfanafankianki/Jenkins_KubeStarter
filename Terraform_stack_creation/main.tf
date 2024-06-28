@@ -2,6 +2,10 @@ module "vpc" {
  source = "./modules/vpc/"
 }
 
+module "policy" {
+ source = "./modules/policy/"
+}
+
 locals {
   common_tags_master = {
     Name = "Master"
@@ -17,6 +21,7 @@ locals {
   key_name_master  = "jenkins"
   ssh_user_worker  = "ubuntu"
   key_name_worker  = "jenkins"
+  efs_id           = module.vpc.efs_mount_target_ip
 }
 
 resource "aws_security_group" "web_sg" {
@@ -74,14 +79,21 @@ resource "aws_key_pair" "worker" {
 }
 
 resource "aws_instance" "master_instance" {
-  #count                  = var.ec2_count
+  count                  = var.ec2_count_master
   ami                    = var.ami_us_east_2_master
   instance_type          = var.ec2_instance_type_master
+  iam_instance_profile = module.policy.instance_profile_name
   tags                   = local.common_tags_master
   subnet_id              = module.vpc.public_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.web_sg.id, aws_security_group.kubernetes_sg.id]
   key_name               = aws_key_pair.master.key_name
   associate_public_ip_address = true
+
+  user_data = <<-EOF
+                #!/bin/bash
+                echo "Dzialaj" >> /home/ubuntu/environment
+                echo "EFS_ID=${local.efs_id}" >> /home/ubuntu/environment
+              EOF
   
   provisioner "remote-exec" {
     inline = [
@@ -97,15 +109,21 @@ resource "aws_instance" "master_instance" {
 }
 
 resource "aws_instance" "worker_instance" {
-  #count                  = var.ec2_count
+  count                  = var.ec2_count_worker
   ami                    = var.ami_us_east_2_worker
   instance_type          = var.ec2_instance_type_worker
+  iam_instance_profile = module.policy.instance_profile_name
   tags                   = local.common_tags_worker
   subnet_id              = module.vpc.public_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.web_sg.id, aws_security_group.kubernetes_sg.id]
   key_name               = aws_key_pair.worker.key_name
   associate_public_ip_address = true
   
+  user_data = <<-EOF
+                #!/bin/bash
+                echo "EFS_ID=${local.efs_id}" >> /home/ubuntu
+              EOF
+
   provisioner "remote-exec" {
     inline = [
       "sudo echo 'Wait for ssh creation'"

@@ -1,4 +1,3 @@
-
 output "vpc_id" {
   description = "VPC ID"
   value = module.vpc.vpc_id
@@ -30,11 +29,15 @@ output "worker_private_key_pem" {
 }
 
 output "master_instance_public_ip" {
-  description = "The public IP address of the master instance"
-  value       = aws_instance.master_instance.public_ip
+  description = "The public IP addresses of the master instances"
+  value       = [for instance in aws_instance.master_instance : instance.public_ip]
 }
 
 output "worker_instance_public_ip" {
-  description = "The public IP address of the master instance"
-  value       = aws_instance.worker_instance.public_ip
+  description = "The public IP addresses of the worker instances"
+  value       = [for instance in aws_instance.worker_instance : instance.public_ip]
+}
+
+output "efs_id" {
+  value = module.vpc.efs_mount_target_ip
 }

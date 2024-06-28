@@ -13,13 +13,13 @@ variable "ec2_instance_type_master" {
 variable "ec2_count_worker" {
   description = "EC2 WORKER INSTANCE COUNT"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "ec2_instance_type_worker" {
   description = "EC2 WORKER INSTANCE TYPE"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.large"
 }
 
 variable "ami_us_east_2_master" {
