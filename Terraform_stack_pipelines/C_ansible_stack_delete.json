@@ -31,7 +31,7 @@ agent any
                     cd Terraform_stack_creation
                     bash prepare_for_ansible.sh
                     cd Ansible_provisioning/master
-                    ansible-playbook -i hosts --private-key master_key.pem --ssh-extra-args="-o StrictHostKeyChecking=no" provisioning.yaml
+                    ansible-playbook -i hosts --private-key master_key.pem --ssh-extra-args="-o StrictHostKeyChecking=no" instance_destroy.yaml
                     """
                 }
             }
