@@ -1,3 +1,8 @@
+output "git_token" {
+  value     = var.git_token
+  sensitive = true
+}
+
 output "vpc_id" {
   description = "VPC ID"
   value = module.vpc.vpc_id
@@ -41,3 +46,9 @@ output "worker_instance_public_ip" {
 output "efs_id" {
   value = module.vpc.efs_mount_target_ip
 }
+
+output "terraform_role_arn" {
+  value = module.policy.terraform_role_arn
+}
+
+

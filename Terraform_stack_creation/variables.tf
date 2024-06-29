@@ -1,3 +1,7 @@
+variable "git_token" {
+  type = string
+}
+
 variable "ec2_count_master" {
   description = "EC2 MASTER INSTANCE COUNT"
   type        = number
@@ -13,13 +17,13 @@ variable "ec2_instance_type_master" {
 variable "ec2_count_worker" {
   description = "EC2 WORKER INSTANCE COUNT"
   type        = number
-  default     = 2
+  default     = 5
 }
 
 variable "ec2_instance_type_worker" {
   description = "EC2 WORKER INSTANCE TYPE"
   type        = string
-  default     = "t3.large"
+  default     = "t3.medium"
 }
 
 variable "ami_us_east_2_master" {

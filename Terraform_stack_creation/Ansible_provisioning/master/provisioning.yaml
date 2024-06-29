@@ -1,3 +1,21 @@
+- name: Retrieve and set Terraform outputs
+  hosts: localhost
+  tasks:
+    - name: Run terraform output for all outputs
+      command: terraform output -json
+      args:
+        chdir: /home/bartek/git_project/Jenkins_KubeStarter/Terraform_stack_creation
+      register: terraform_outputs
+      no_log: true
+
+    - name: Set facts with the extracted outputs
+      set_fact:
+        terraform_role_arn: "{{ (terraform_outputs.stdout | from_json).terraform_role_arn.value }}"
+        public_subnet_ids: "{{ (terraform_outputs.stdout | from_json).public_subnet_ids.value | join(',') }}"
+        efs_id: "{{ (terraform_outputs.stdout | from_json).efs_id.value }}"
+        git_token: "{{ (terraform_outputs.stdout | from_json).git_token.value }}"
+      no_log: true
+
 - name: General provisioning for all hosts
   hosts: all
   become: yes
@@ -10,6 +28,17 @@
         owner: ubuntu
         group: ubuntu
         mode: '0644'
+
+    - name: Update .bashrc with Terraform outputs
+      lineinfile:
+        path: /home/ubuntu/.bashrc
+        create: yes
+        line: |
+          export TERRAFORM_ROLE_ARN="{{ hostvars['localhost'].terraform_role_arn }}"
+          export PUBLIC_SUBNET_IDS="{{ hostvars['localhost'].public_subnet_ids }}"
+          export EFS_ID="{{ hostvars['localhost'].efs_id }}"
+          export GITHUB_TOKEN="{{ hostvars['localhost'].git_token }}"
+      no_log: true
 
     - name: Update apt cache
       apt:
@@ -118,7 +147,7 @@
         enabled: yes
 
     - name: Add Kubernetes GPG key and repository
-      shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg 
+      shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
       args:
         creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
@@ -303,14 +332,28 @@
       set_fact:
         instance_id: "{{ aws_instance_id.stdout }}"
 
-    - name: Get local IP and format it
+    - name: Get local IP
       shell: |
-        curl http://169.254.169.254/latest/meta-data/local-ipv4 | tr '.' '-'
-      register: local_ip_formatted
+        curl -H "X-aws-ec2-metadata-token: {{ token }}" \
+        http://169.254.169.254/latest/meta-data/local-ipv4
+      register: local_ip
 
-    - name: Set local IP formatted fact
+    - name: Format local IP
       set_fact:
-        local_ip_formatted: "{{ local_ip_formatted.stdout }}"
+        local_ip_formatted: "{{ local_ip.stdout | replace('.', '-') }}"
+
+    - name: Debug formatted IP
+      debug:
+        msg: "Formatted local IP is {{ local_ip_formatted }}"
+
+    - name: Patch Kubernetes node
+      shell: |
+        kubectl patch node "ip-{{ local_ip_formatted }}" -p '{"spec":{"providerID":"aws:///{{ region }}/{{ instance_id }}"}}'
+      register: kubectl_patch
+
+    - name: Display patch result
+      debug:
+        msg: "{{ kubectl_patch.stdout }}"
 
 - name: Download Git Repo
   hosts: all
@@ -335,6 +378,13 @@
   become_user: ubuntu
   tasks:
 
+    - name: Run envsubst on deployment file and replace original
+      shell: |
+        envsubst < /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/7-deployment_prometheus.yaml > /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/7-deployment_prometheus.yaml.tmp
+        envsubst < /home/ubuntu/KubeServices/Kubernetes_Yamls/7-ingress.yaml > /home/ubuntu/KubeServices/Kubernetes_Yamls/7-ingress.yaml.tmp
+        mv /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/7-deployment_prometheus.yaml.tmp /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/7-deployment_prometheus.yaml
+        mv /home/ubuntu/KubeServices/Kubernetes_Yamls/7-ingress.yaml.tmp /home/ubuntu/KubeServices/Kubernetes_Yamls/7-ingress.yaml
+
     - name: Apply Configuration Yamls
       ansible.builtin.command:
         cmd: kubectl apply -f /home/ubuntu/KubeServices/Kubernetes_Yamls/.
@@ -353,12 +403,9 @@
 
     - name: Export GitHub token and bootstrap Flux
       ansible.builtin.shell: |
-        export GITHUB_TOKEN="secret"
         kubectl rollout restart deployment/coredns -n kube-system
         sleep 10
         flux bootstrap github --owner=fanfanafankianki --repository=KubeServices --branch=HelmPromGraf --path=./Flux_configuration --personal
-      environment:
-        GITHUB_TOKEN: "secret"
 
     - name: Restart CoreDNS deployment and wait
       ansible.builtin.shell: |
@@ -384,4 +431,4 @@
           --namespace kube-system
           --set clusterName=kubernetes
           --set serviceAccount.create=true
-          --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::975050111074:role/KubernetesIngressRole
+          --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"={{ hostvars['localhost'].terraform_role_arn }}

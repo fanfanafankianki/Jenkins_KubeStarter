@@ -50,11 +50,100 @@ resource "aws_security_group" "kubernetes_sg" {
   lifecycle {
     create_before_destroy = true
   }
+
   ingress {
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
     cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 179
+    to_port     = 179
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 2049
+    to_port     = 2049
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 17900
+    to_port     = 17999
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 30000
+    to_port     = 35000
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  ingress {
+    from_port   = 10256
+    to_port     = 10256
+    protocol    = "tcp"
+    cidr_blocks = var.security_group.cidr_blocks
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"  # -1 means all protocols
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "kubernetes_sg"
   }
 }
 
