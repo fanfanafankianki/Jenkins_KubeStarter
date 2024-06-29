@@ -20,7 +20,7 @@ agent any
                     echo 'credentials "app.terraform.io" { token = "${TERRAFORM_CLOUD_TOKEN}" }' > ~/.terraformrc
 
                     terraform init
-                    terraform delete -auto-approve
+                    terraform destroy -auto-approve
                     """
                 }
             }

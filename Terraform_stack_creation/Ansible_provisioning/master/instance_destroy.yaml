@@ -1,0 +1,26 @@
+- name: Cleanup Kubernetes resources
+  hosts: master
+  tasks:
+    - name: Delete all Ingresses
+      command: kubectl delete ingress --all
+      register: delete_ingresses
+      ignore_errors: true
+
+    - name: Delete all Services
+      command: kubectl delete service --all
+      register: delete_services
+      ignore_errors: true
+
+    - name: Wait for AWS Load Balancer Controller to remove Load Balancers
+      shell: |
+        until [[ $(kubectl get ingress --all-namespaces | wc -l) -eq 0 && $(kubectl get service --all-namespaces | wc -l) -eq 0 ]]; do
+          echo "Waiting for Load Balancers and DNS entries to be deleted..."
+          sleep 30
+        done
+      register: wait_for_deletion
+      ignore_errors: true
+
+    - name: Delete all target group bindings
+      command: kubectl delete targetgroupbindings.elbv2.k8s.aws --all
+      register: delete_tgbs
+      ignore_errors: true

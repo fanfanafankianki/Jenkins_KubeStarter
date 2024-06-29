@@ -401,11 +401,15 @@
       args:
         chdir: /home/ubuntu/KubeServices/Flux_configuration
 
-    - name: Export GitHub token and bootstrap Flux
+    - name: Restart coreDNS
       ansible.builtin.shell: |
         kubectl rollout restart deployment/coredns -n kube-system
-        sleep 10
+        sleep 20
+
+    - name: Export GitHub token and bootstrap Flux
+      ansible.builtin.shell: |
         flux bootstrap github --owner=fanfanafankianki --repository=KubeServices --branch=HelmPromGraf --path=./Flux_configuration --personal
+      ignore_errors: true
 
     - name: Restart CoreDNS deployment and wait
       ansible.builtin.shell: |
