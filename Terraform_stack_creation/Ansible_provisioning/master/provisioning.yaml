@@ -4,7 +4,7 @@
     - name: Run terraform output for all outputs
       command: terraform output -json
       args:
-        chdir: /home/bartek/git_project/Jenkins_KubeStarter/Terraform_stack_creation
+        chdir: "{{ playbook_dir }}/../.."
       register: terraform_outputs
       no_log: true
 
