@@ -15,7 +15,7 @@
       shell: |
         until [[ $(kubectl get ingress --all-namespaces | wc -l) -eq 0 && $(kubectl get service --all-namespaces | wc -l) -eq 0 ]]; do
           echo "Waiting for Load Balancers and DNS entries to be deleted..."
-          sleep 30
+          sleep 180
         done
       register: wait_for_deletion
       ignore_errors: true
