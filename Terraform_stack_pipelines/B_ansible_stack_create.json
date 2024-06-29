@@ -1,0 +1,40 @@
+pipeline {
+agent any
+
+    environment {
+        TERRAFORM_CLOUD_TOKEN = credentials('TERRAFORM_CLOUD_TOKEN')
+        TF_CLI_ARGS = '-no-color'
+    }
+
+    stages {
+        stage('Fetch code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/fanfanafankianki/Jenkins_KubeStarter.git'
+            }
+        }
+        stage('Initialize Terraform') {
+            steps {
+                script {
+                    sh """
+                    echo 'credentials "app.terraform.io" { token = "${TERRAFORM_CLOUD_TOKEN}" }' > ~/.terraformrc
+                    cd Terraform_stack_creation
+                    terraform init
+                    """
+                }
+            }
+        }
+        stage('Create Ansible Infrastracture') {
+            steps {
+                script {
+                    // Further actions
+                    sh """
+                    cd Terraform_stack_creation
+                    bash prepare_for_ansible.sh
+                    cd Ansible_provisioning/master
+                    ansible-playbook -i hosts --private-key master_key.pem --ssh-extra-args="-o StrictHostKeyChecking=no" provisioning.yaml
+                    """
+                }
+            }
+        }
+    }
+}
