@@ -8,7 +8,7 @@
 
     - name: Wait for AWS Load Balancer Controller to remove Load Balancers
       shell: |
-        until [[ $(kubectl get ingress --all-namespaces | wc -l) -eq 0; do
+        until [ $(kubectl get ingress --all-namespaces | wc -l) -eq 0 ]; do
           echo "Waiting for Load Balancers and DNS entries to be deleted..."
           sleep 20
         done
