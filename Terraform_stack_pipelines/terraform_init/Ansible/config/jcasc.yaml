@@ -1,0 +1,21 @@
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "password"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  installState:
+    state: "RUNNING"
+credentials:
+  system:
+    domainCredentials:
+    - credentials:
+      - string:
+          description: "Ten token2"
+          id: "Token2"
+          scope: GLOBAL
+          secret: "{AQAAABAAAAAQ2wgdZxOyWxSIsEGgdxW+uVje3oed/A//QTYijQinDnI=}"

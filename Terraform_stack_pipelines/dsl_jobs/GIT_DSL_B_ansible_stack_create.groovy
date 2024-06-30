@@ -1,4 +1,4 @@
-pipelineJob('A_Terraform_Infrastracture_create_pipeline') {
+pipelineJob('B_Ansbile_Infrastracture_create_pipeline') {
     definition {
         cpsScm {
             scm {
@@ -9,7 +9,7 @@ pipelineJob('A_Terraform_Infrastracture_create_pipeline') {
                     branch('main')
                 }
             }
-            scriptPath('Terraform_stack_pipelines/A_terraform_stack_create.json')
+            scriptPath('Terraform_stack_pipelines/B_ansible_stack_create.json')
         }
     }
 }
