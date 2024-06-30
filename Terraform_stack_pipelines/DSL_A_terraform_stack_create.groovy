@@ -1,0 +1,38 @@
+pipelineJob('Terraform-Ansible-Pipeline') {
+    definition {
+        cps {
+            script("""
+pipeline {
+agent any
+
+    environment {
+        TERRAFORM_CLOUD_TOKEN = credentials('TERRAFORM_CLOUD_TOKEN')
+        TF_CLI_ARGS = '-no-color'
+    }
+
+    stages {
+        stage('Fetch code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/fanfanafankianki/Jenkins_KubeStarter.git'
+            }
+        }
+        stage('Create AWS Infrastracture') {
+            steps {
+                script {
+                    sh """
+                    cd Terraform_stack_creation
+                    echo 'credentials "app.terraform.io" { token = "${TERRAFORM_CLOUD_TOKEN}" }' > ~/.terraformrc
+
+                    terraform init
+                    terraform apply -auto-approve
+                    """
+                }
+            }
+        }
+    }
+}
+            """)
+            sandbox()
+        }
+    }
+}
