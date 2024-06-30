@@ -428,6 +428,23 @@
       ansible.builtin.command:
         cmd: helm repo update
 
+    - name: Download kube-state-metrics manifests
+      get_url:
+        url: https://github.com/kubernetes/kube-state-metrics/archive/refs/tags/v2.4.2.tar.gz
+        dest: /tmp/kube-state-metrics.tar.gz
+
+    - name: Extract kube-state-metrics manifests
+      unarchive:
+        src: /tmp/kube-state-metrics.tar.gz
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Apply kube-state-metrics manifests
+      shell: |
+        kubectl apply -f /tmp/kube-state-metrics-2.4.2/examples/standard
+      register: apply_manifests
+      failed_when: apply_manifests.rc != 0
+
     - name: Install or upgrade AWS Load Balancer Controller
       ansible.builtin.command:
         cmd: >
