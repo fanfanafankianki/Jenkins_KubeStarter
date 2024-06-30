@@ -45,11 +45,18 @@ resource "aws_security_group" "web_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Allow inbound traffic on port 53 for DNS
   ingress {
     from_port   = 53
     to_port     = 53
-    protocol    = "udp"
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -141,13 +148,6 @@ resource "aws_security_group" "kubernetes_sg" {
     from_port   = 53
     to_port     = 53
     protocol    = "tcp"
-    cidr_blocks = var.security_group.cidr_blocks
-  }
-
-  ingress {
-    from_port   = 53
-    to_port     = 53
-    protocol    = "udp"
     cidr_blocks = var.security_group.cidr_blocks
   }
 
