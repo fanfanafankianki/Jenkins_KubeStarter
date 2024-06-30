@@ -8,14 +8,12 @@ jenkins:
   authorizationStrategy:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
-  installState:
-    state: "RUNNING"
 credentials:
   system:
     domainCredentials:
     - credentials:
       - string:
-          description: "Ten token2"
-          id: "Token2"
+          description: "TERRAFORM_CLOUD_TOKEN"
+          id: "TERRAFORM_CLOUD_TOKEN"
           scope: GLOBAL
           secret: "{AQAAABAAAAAQ2wgdZxOyWxSIsEGgdxW+uVje3oed/A//QTYijQinDnI=}"

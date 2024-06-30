@@ -1,6 +1,7 @@
 import jenkins.model.*
 import hudson.security.*
 import hudson.util.*
+import jenkins.install.*
 import com.cloudbees.plugins.credentials.*
 import com.cloudbees.plugins.credentials.domains.*
 import com.cloudbees.plugins.credentials.impl.*
@@ -37,3 +38,6 @@ pluginList.each {
 if (installed) {
   instance.doSafeRestart()
 }
+
+// Oznaczenie instalacji jako zakończonej
+InstallState.INITIAL_SETUP_COMPLETED.initializeState()
