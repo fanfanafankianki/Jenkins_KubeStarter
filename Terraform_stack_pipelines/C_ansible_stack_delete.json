@@ -37,4 +37,9 @@ agent any
             }
         }
     }
+    post {
+        success {
+            build job: 'C_Ansible_Infrastracture_delete_pipeline'
+        }
+    }
 }

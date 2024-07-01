@@ -26,4 +26,9 @@ agent any
             }
         }
     }
+    post {
+        success {
+            build job: 'B_Ansbile_Infrastracture_create_pipeline'
+        }
+    }
 }
