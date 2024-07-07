@@ -18,8 +18,9 @@ agent any
                     sh """
                     cd Terraform_stack_creation
                     echo 'credentials "app.terraform.io" { token = "${TERRAFORM_CLOUD_TOKEN}" }' > ~/.terraformrc
-
+                    ls
                     terraform init
+                    terraform plan -auto-approve
                     terraform apply -auto-approve
                     """
                 }
