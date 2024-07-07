@@ -162,7 +162,7 @@ resource "aws_instance" "master_instance" {
   iam_instance_profile = module.policy.instance_profile_name
   tags                   = local.common_tags_master
   subnet_id              = module.vpc.public_subnet_ids[0]
-  vpc_security_group_ids = aws_security_group.kubernetes_sg.id
+  vpc_security_group_id = aws_security_group.kubernetes_sg.id
   key_name               = aws_key_pair.master.key_name
   associate_public_ip_address = true
 
@@ -197,7 +197,7 @@ resource "aws_instance" "worker_instance" {
   iam_instance_profile = module.policy.instance_profile_name
   tags                   = local.common_tags_worker
   subnet_id              = module.vpc.public_subnet_ids[0]
-  vpc_security_group_ids = aws_security_group.kubernetes_sg.id
+  vpc_security_group_id = aws_security_group.kubernetes_sg.id
   key_name               = aws_key_pair.worker.key_name
   associate_public_ip_address = true
   
