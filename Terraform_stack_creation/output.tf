@@ -18,11 +18,6 @@ output "private_subnet_ids" {
   value       = module.vpc.private_subnet_ids
 }
 
-output "sg_id" {
-  description = "Security Group ID"
-  value = aws_security_group.web_sg.id
-}
-
 output "master_private_key_pem" {
   value     = tls_private_key.master.private_key_pem
   sensitive = true

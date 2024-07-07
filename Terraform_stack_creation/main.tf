@@ -24,17 +24,11 @@ locals {
   efs_id           = module.vpc.efs_mount_target_ip
 }
 
-resource "aws_security_group" "web_sg" {
-  name        = var.security_group.sg_name
+resource "aws_security_group" "kubernetes_sg" {
+  name        = "kubernetes_sg"
   vpc_id      = module.vpc.vpc_id
   lifecycle {
     create_before_destroy = true
-  }
-  ingress {
-    from_port   = var.security_group.ssh_port
-    to_port     = var.security_group.ssh_port
-    protocol    = var.security_group.protocol
-    cidr_blocks = var.security_group.cidr_blocks
   }
 
   # Allow all outbound traffic
@@ -50,63 +44,6 @@ resource "aws_security_group" "web_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow inbound traffic on port 53 for DNS
-  ingress {
-    from_port   = 53
-    to_port     = 53
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow inbound traffic on port 80 (HTTP)
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow inbound traffic on port 443 (HTTPS)
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow inbound traffic on port 9440 for health probes
-  ingress {
-    from_port   = 9440
-    to_port     = 9440
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow inbound traffic on port 8080 for metrics server
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow inbound traffic on port 9090 for notification controller
-  ingress {
-    from_port   = 9090
-    to_port     = 9090
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-}
-
-resource "aws_security_group" "kubernetes_sg" {
-  name        = "kubernetes_sg"
-  vpc_id      = module.vpc.vpc_id
-  lifecycle {
-    create_before_destroy = true
   }
 
   ingress {
@@ -225,7 +162,7 @@ resource "aws_instance" "master_instance" {
   iam_instance_profile = module.policy.instance_profile_name
   tags                   = local.common_tags_master
   subnet_id              = module.vpc.public_subnet_ids[0]
-  vpc_security_group_ids = [aws_security_group.web_sg.id, aws_security_group.kubernetes_sg.id]
+  vpc_security_group_ids = aws_security_group.kubernetes_sg.id
   key_name               = aws_key_pair.master.key_name
   associate_public_ip_address = true
 
@@ -260,7 +197,7 @@ resource "aws_instance" "worker_instance" {
   iam_instance_profile = module.policy.instance_profile_name
   tags                   = local.common_tags_worker
   subnet_id              = module.vpc.public_subnet_ids[0]
-  vpc_security_group_ids = [aws_security_group.web_sg.id, aws_security_group.kubernetes_sg.id]
+  vpc_security_group_ids = aws_security_group.kubernetes_sg.id
   key_name               = aws_key_pair.worker.key_name
   associate_public_ip_address = true
   
