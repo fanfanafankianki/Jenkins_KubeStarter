@@ -229,6 +229,11 @@ resource "aws_instance" "master_instance" {
   key_name               = aws_key_pair.master.key_name
   associate_public_ip_address = true
 
+  root_block_device {
+    volume_size = 10
+    volume_type = "gp2"
+  }
+
   user_data = <<-EOF
                 #!/bin/bash
                 echo "Dzialaj" >> /home/ubuntu/environment
@@ -259,6 +264,11 @@ resource "aws_instance" "worker_instance" {
   key_name               = aws_key_pair.worker.key_name
   associate_public_ip_address = true
   
+  root_block_device {
+    volume_size = 10
+    volume_type = "gp2"
+  }
+
   user_data = <<-EOF
                 #!/bin/bash
                 echo "EFS_ID=${local.efs_id}" >> /home/ubuntu
