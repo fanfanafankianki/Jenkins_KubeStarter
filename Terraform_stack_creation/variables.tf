@@ -17,7 +17,7 @@ variable "ec2_instance_type_master" {
 variable "ec2_count_worker" {
   description = "EC2 WORKER INSTANCE COUNT"
   type        = number
-  default     = 5
+  default     = 6
 }
 
 variable "ec2_instance_type_worker" {
