@@ -384,8 +384,10 @@
       shell: |
         envsubst < /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/7-deployment_prometheus.yaml > /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/7-deployment_prometheus.yaml.tmp
         envsubst < /home/ubuntu/KubeServices/Kubernetes_Yamls/7-ingress.yaml > /home/ubuntu/KubeServices/Kubernetes_Yamls/7-ingress.yaml.tmp
+        envsubst < /home/ubuntu/KubeServices/Flux_configuration/aws_load_balancer_controller_HR.yaml > /home/ubuntu/KubeServices/Flux_configuration/aws_load_balancer_controller_HR.yaml.tmp
         mv /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/7-deployment_prometheus.yaml.tmp /home/ubuntu/KubeServices/Kubernetes_Yamls/NFS_configuration/7-deployment_prometheus.yaml
         mv /home/ubuntu/KubeServices/Kubernetes_Yamls/7-ingress.yaml.tmp /home/ubuntu/KubeServices/Kubernetes_Yamls/7-ingress.yaml
+        mv /home/ubuntu/KubeServices/Flux_configuration/aws_load_balancer_controller_HR.yaml.tmp /home/ubuntu/KubeServices/Flux_configuration/aws_load_balancer_controller_HR.yaml
 
     - name: Apply Configuration Yamls
       ansible.builtin.command:
