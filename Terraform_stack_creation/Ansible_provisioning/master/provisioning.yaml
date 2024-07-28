@@ -294,11 +294,6 @@
         owner: root
         group: root
 
-    - name: Restart CoreDNS deployment and wait
-      ansible.builtin.shell: |
-        kubectl rollout restart deployment/coredns -n kube-system
-        sleep 10
-
 - name: Patch Kubernetes node
   hosts: all
   become: yes
@@ -404,11 +399,6 @@
         curl -s https://fluxcd.io/install.sh | sudo bash
       args:
         chdir: /home/ubuntu/KubeServices/Flux_configuration
-
-    - name: Restart coreDNS
-      ansible.builtin.shell: |
-        kubectl rollout restart deployment/coredns -n kube-system
-        sleep 20
 
     - name: Export GitHub token and bootstrap Flux
       ansible.builtin.shell: |
